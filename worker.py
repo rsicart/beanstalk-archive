@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-from connection import ArchiverConnection
+from archiver.connection import Connection
+from archiver.backup import Backup
+from archiver.job import Job, JobDecoder
 from daemonize import Daemonize
 from datetime import datetime
 from pystalkd.Beanstalkd import SocketError
 from time import sleep
-import archiverjob
-import backup
 import json
 import logging
 import settings
@@ -31,7 +31,7 @@ def main():
 	setup = settings.beanstalkd
 
 	try:
-		c = ArchiverConnection(*setup['connection'])
+		c = Connection(*setup['connection'])
 		c.watchMany(setup['tubes']['watch'])
 		c.ignoreMany(setup['tubes']['ignore'])
 		logger.info("Watching tubes {}".format(c.watching()))
@@ -43,7 +43,7 @@ def main():
 		logger.error(e)
 		sys.exit(1)
 
-	b = backup.Backup()
+	b = Backup()
 
 	while True:
 
@@ -62,7 +62,7 @@ def main():
 		job = c.reserve(setup['timeout'])
 
 		if job:
-			archiverJob = json.loads(job.body, cls=archiverjob.ArchiverJobDecoder)
+			archiverJob = json.loads(job.body, cls=JobDecoder)
 			archiverJob.setChecksum()
 			if b.run(archiverJob):
 				logger.info("Success backuping file {} from {}".format(archiverJob.filename, archiverJob.host))

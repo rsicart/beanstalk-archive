@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
+from archiver.connection import Connection
+from archiver.backup import Backup
+from archiver.job import Job, JobEncoder
 from pystalkd.Beanstalkd import Connection
-import archiverjob
 import json
 import hashlib
 import settings
@@ -17,12 +19,12 @@ print("Using tube {}".format(c.using()))
 jobs = []
 
 filename = "/tmp/test.log"
-backup = archiverjob.ArchiverJob("localhost", filename)
+backup = Job("localhost", filename)
 backup.setChecksum()
 
 jobs.append(backup)
 
 for job in jobs:
-	body = json.dumps(backup, cls=archiverjob.ArchiverJobEncoder)
+	body = json.dumps(backup, cls=JobEncoder)
 	print(body)
 	c.put(body)

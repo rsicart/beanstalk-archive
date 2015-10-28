@@ -2,9 +2,9 @@
 
 import sys
 from pystalkd.Beanstalkd import SocketError
-from connection import ArchiverConnection
-import archiverjob
-import backup
+from archiver.connection import Connection
+from archiver.backup import Backup
+from archiver.job import Job, JobDecoder
 import settings
 import json
 from time import sleep
@@ -16,7 +16,7 @@ from time import sleep
 setup = settings.beanstalkd
 
 try:
-    c = ArchiverConnection(*setup['connection'])
+    c = Connection(*setup['connection'])
     c.watchMany(setup['tubes']['watch'])
     c.ignoreMany(setup['tubes']['ignore'])
     print("Watching tubes {}".format(c.watching()))
@@ -28,7 +28,7 @@ except SocketError as e:
     print(e)
     sys.exit(1)
 
-b = backup.Backup()
+b = Backup()
 
 while True:
 
@@ -47,7 +47,7 @@ while True:
     job = c.reserve(setup['timeout'])
 
     if job:
-        archiverJob = json.loads(job.body, cls=archiverjob.ArchiveJobDecoder)
+        archiverJob = json.loads(job.body, cls=JobDecoder)
         archiverJob.setChecksum()
         if b.run(archiverJob):
             print("Success backuping file {} from {}".format(archiverJob.filename, archiverJob.host))

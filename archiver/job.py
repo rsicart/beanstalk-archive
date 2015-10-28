@@ -8,7 +8,7 @@ import sys, os, errno
 import settings
 
 
-class ArchiverJob:
+class Job:
 	def __init__(self, host, filename):
 		'''
 		:param host: string with a fqdn hostname
@@ -54,15 +54,15 @@ class ArchiverJob:
 
 
 
-class ArchiverJobEncoder(json.JSONEncoder):
+class JobEncoder(json.JSONEncoder):
 	def default(self, object):
-		if isinstance(object, ArchiverJob):
+		if isinstance(object, Job):
 			return object.__dict__
 		return json.JSONEncoder.default(self, object)
 
 
 
-class ArchiverJobDecoder(json.JSONDecoder):
+class JobDecoder(json.JSONDecoder):
 	def decode(self, string):
 		data = json.JSONDecoder.decode(self, string)
-		return ArchiverJob(data['host'], data['filename']);
+		return Job(data['host'], data['filename']);

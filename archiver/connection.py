@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 
-from pystalkd.Beanstalkd import Connection, SocketError
+import pystalkd
 
-
-class ArchiverConnection(Connection):
+class Connection(pystalkd.Beanstalkd.Connection):
 
 	def isBroken(self):
 		sent = self._socket.send(b'archiver ping\r\n')
