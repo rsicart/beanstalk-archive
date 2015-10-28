@@ -3,7 +3,7 @@
 import sys
 from pystalkd.Beanstalkd import SocketError
 from connection import ArchiverConnection
-import archivejob
+import archiverjob
 import backup
 import settings
 import json
@@ -47,13 +47,13 @@ while True:
     job = c.reserve(setup['timeout'])
 
     if job:
-        archiveJob = json.loads(job.body, cls=archivejob.ArchiveJobDecoder)
-        archiveJob.setChecksum()
-        if b.run(archiveJob):
-            print("Success backuping file {} from {}".format(archiveJob.filename, archiveJob.host))
+        archiverJob = json.loads(job.body, cls=archiverjob.ArchiveJobDecoder)
+        archiverJob.setChecksum()
+        if b.run(archiverJob):
+            print("Success backuping file {} from {}".format(archiverJob.filename, archiverJob.host))
             job.delete()
         else:
-            print("Error while backuping file {} from {}".format(archiveJob.filename, archiveJob.host))
+            print("Error while backuping file {} from {}".format(archiverJob.filename, archiverJob.host))
             job.release()
 
     sleep(setup['timeout'])

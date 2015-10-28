@@ -2,7 +2,7 @@
 
 import subprocess
 import sys, os, errno
-import archivejob
+import archiverjob
 import settings
 
 class Backup:
@@ -56,8 +56,8 @@ class Backup:
 	def isChecksumCorrect(self, job1, job2):
 		'''
 		Compare two job checksums
-		:param job1: ArchiveJob
-		:param job2: ArchiveJob
+		:param job1: ArchiverJob
+		:param job2: ArchiverJob
 		:return: boolean
 		'''
 		return job1.checksum == job2.checksum
@@ -66,7 +66,7 @@ class Backup:
 	def run(self, job):
 		'''
 		Do a backup using job information
-		:param job: ArchiveJob
+		:param job: ArchiverJob
 		:return: boolean
 		'''
 		sourceFolder, targetFilename = os.path.split(job.filename)
@@ -82,7 +82,7 @@ class Backup:
 				raise Exception('Unknown error while copying the file, check log files.')
 				sys.exit(3)
 
-		expectedJob = archivejob.ArchiveJob(None, targetFilename)
+		expectedJob = archiverjob.ArchiverJob(None, targetFilename)
 		expectedJob.setChecksum()
 
 		return self.isChecksumCorrect(job, expectedJob)
