@@ -1,27 +1,26 @@
 #!/usr/bin/env python3
 
 import sys
-from pystalkd.Beanstalkd import Connection, SocketError
+from pystalkd.Beanstalkd import SocketError
+from connection import ArchiverConnection
 import archivejob
 import backup
 import settings
 import json
 from time import sleep
 
+
+#
+# main
+#
 setup = settings.beanstalkd
 
-def isActiveSocket(socket):
-    sent = socket.send(b'ping\r\n')
-    chunk = socket.recv(128)
-    if sent == 0 or len(chunk) == 0:
-        return False
-    return True
-
-
-# main
-
 try:
-    c = Connection(*setup['connection'])
+    c = ArchiverConnection(*setup['connection'])
+    c.watchMany(setup['tubes']['watch'])
+    c.ignoreMany(setup['tubes']['ignore'])
+    print("Watching tubes {}".format(c.watching()))
+    print("Ignoring tubes {}".format(setup['tubes']['ignore']))
 except ConnectionRefusedError as e:
     print(e)
     sys.exit(1)
@@ -29,26 +28,15 @@ except SocketError as e:
     print(e)
     sys.exit(1)
 
-for tube in setup['tubes']['watch']:
-    c.watch(tube)
-
-for tube in setup['tubes']['ignore']:
-    c.ignore(tube)
-
-print("Watching tubes {}".format(c.watching()))
-print("Ignoring tubes {}".format(setup['tubes']['ignore']))
-
 b = backup.Backup()
 
 while True:
 
-    if not isActiveSocket(c._socket):
+    if c.isBroken():
         try:
             c.reconnect()
-            for tube in setup['tubes']['watch']:
-                c.watch(tube)
-            for tube in setup['tubes']['ignore']:
-                c.ignore(tube)
+            c.watchMany(setup['tubes']['watch'])
+            c.ignoreMany(setup['tubes']['ignore'])
         except ConnectionRefusedError as e:
             print(e)
             sys.exit(3)
