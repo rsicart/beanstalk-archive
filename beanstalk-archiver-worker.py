@@ -63,7 +63,6 @@ def main():
 
 		if job:
 			archiverJob = json.loads(job.body, cls=JobDecoder)
-			archiverJob.setChecksum()
 			if b.run(archiverJob):
 				logger.info("Success backuping file {} from {}".format(archiverJob.filename, archiverJob.host))
 				job.delete()

@@ -48,7 +48,6 @@ while True:
 
     if job:
         archiverJob = json.loads(job.body, cls=JobDecoder)
-        archiverJob.setChecksum()
         if b.run(archiverJob):
             print("Success backuping file {} from {}".format(archiverJob.filename, archiverJob.host))
             job.delete()

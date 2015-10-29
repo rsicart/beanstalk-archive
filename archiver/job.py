@@ -68,4 +68,6 @@ class JobEncoder(json.JSONEncoder):
 class JobDecoder(json.JSONDecoder):
 	def decode(self, string):
 		data = json.JSONDecoder.decode(self, string)
-		return Job(data['host'], data['filename']);
+		job = Job(data['host'], data['filename'])
+		job.setChecksum(data['checksum'])
+		return job
