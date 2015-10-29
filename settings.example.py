@@ -16,3 +16,13 @@ logFile = {
     'stdout': '/tmp/beanstalk-archiver.log',
     'stderr': '/tmp/beanstalk-archiver.log',
 }
+
+beanstalkd = {
+    'connection': ('localhost', 11301),
+    'tubes': {
+        'watch': ['myTube'],
+		'use': 'myTube',
+        'ignore': ['default'],
+    },
+    'timeout': 300,
+}
