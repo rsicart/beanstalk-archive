@@ -44,8 +44,11 @@ class Job:
 		return hash.hexdigest()
 
 
-	def setChecksum(self):
-		self.checksum = self.calculateChecksum(self.filename)
+	def setChecksum(self, checksum=None):
+		if checksum:
+			self.checksum = checksum
+		else:
+			self.checksum = self.calculateChecksum(self.filename)
 
 
 	def __str__(self):
