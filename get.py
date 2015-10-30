@@ -5,10 +5,19 @@ from pystalkd.Beanstalkd import SocketError
 from archiver.connection import Connection
 from archiver.backup import Backup
 from archiver.job import Job, JobDecoder
+from archiver.alert import Email
 import settings
 import json
+import socket
 from time import sleep
 
+
+def send_alert(error):
+	if settings.alerts['enabled']:
+		alerts = []
+		msg = 'An error ocurred during "{}" execution.\nPlease, connect to host "{}" and check the process logs.\n'.format(__file__, socket.getfqdn())
+		alert = Email(settings.alerts['email']['server'], settings.alerts['email']['port'], settings.alerts['email']['sender'], ', '.join(settings.alerts['email']['recipients']), msg)
+		alert.send()
 
 #
 # main
@@ -23,9 +32,11 @@ try:
     print("Ignoring tubes {}".format(setup['tubes']['ignore']))
 except ConnectionRefusedError as e:
     print(e)
+    send_alert(e)
     sys.exit(1)
 except SocketError as e:
     print(e)
+    send_alert(e)
     sys.exit(1)
 
 b = Backup()
@@ -39,9 +50,11 @@ while True:
             c.ignoreMany(setup['tubes']['ignore'])
         except ConnectionRefusedError as e:
             print(e)
+            send_alert(e)
             sys.exit(3)
         except SocketError as e:
             print(e)
+            send_alert(e)
             sys.exit(4)
 
     job = c.reserve(setup['timeout'])

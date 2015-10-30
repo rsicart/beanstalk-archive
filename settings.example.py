@@ -28,3 +28,13 @@ beanstalkd = {
     },
     'timeout': 300,
 }
+
+alerts = {
+    'enabled': False,
+    'email': {
+        'server': 'localhost',
+        'port': 25,
+        'sender': 'beanstalk-archive@example.com',
+        'recipients': [],
+    },
+}

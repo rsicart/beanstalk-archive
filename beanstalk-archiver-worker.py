@@ -3,6 +3,7 @@
 from archiver.connection import Connection
 from archiver.backup import Backup
 from archiver.job import Job, JobDecoder
+from archiver.alert import Email
 from daemonize import Daemonize
 from datetime import datetime
 from pystalkd.Beanstalkd import SocketError
@@ -10,6 +11,7 @@ from time import sleep
 import json
 import logging
 import settings
+import socket
 import sys
 
 pid = "/tmp/archiver-worker.pid"
@@ -26,6 +28,14 @@ logger.addHandler(fh)
 keep_fds = [fh.stream.fileno()]
 
 
+def send_alert(error):
+	if settings.alerts['enabled']:
+		alerts = []
+		msg = 'An error ocurred during "{}" execution.\nPlease, connect to host "{}" and check the process logs.\n'.format(__file__, socket.getfqdn())
+		alert = Email(settings.alerts['email']['server'], settings.alerts['email']['port'], settings.alerts['email']['sender'], ', '.join(settings.alerts['email']['recipients']), msg)
+		alert.send()
+
+
 # action setup for daemon
 def main():
 	setup = settings.beanstalkd
@@ -38,9 +48,11 @@ def main():
 		logger.info("Ignoring tubes {}".format(setup['tubes']['ignore']))
 	except ConnectionRefusedError as e:
 		logger.error(e)
+		send_alert(e)
 		sys.exit(1)
 	except SocketError as e:
 		logger.error(e)
+		send_alert(e)
 		sys.exit(1)
 
 	b = Backup()
@@ -54,9 +66,11 @@ def main():
 				c.ignoreMany(setup['tubes']['ignore'])
 			except ConnectionRefusedError as e:
 				logger.error(e)
+				send_alert(e)
 				sys.exit(3)
 			except SocketError as e:
 				logger.error(e)
+				send_alert(e)
 				sys.exit(4)
 
 		job = c.reserve(setup['timeout'])
